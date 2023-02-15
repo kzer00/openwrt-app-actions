@@ -219,16 +219,17 @@ jobs:
           name: ${{ env.SDK_ARCH }}
           path: ${{ env.SDK_NAME }}/bin/packages/${{ env.SDK_ARCH }}
 
-      - name: Upload Firmware to Release
-       # if: github.event.inputs.release == 'true'
-        uses: svenstaro/upload-release-action@v2
+      - uses: actions/checkout@master
+      - name: Create release
+        uses: Roang-zero1/github-create-release-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload release artifacts
+        uses: Roang-zero1/github-upload-release-artifacts-action@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          file_glob: true
-          file: ${{ env.SDK_NAME }}/bin/packages/${{ env.SDK_ARCH }}/*
-          asset_name: ${{ github.event.repository.name }}-${{ github.sha }}
-          tag: release-${{ env.DATE}}
-          overwrite: true
+         args: "dist/bin/ dist/shell/compiled.sh"
+        env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: PreCache - Clean
         run: |
