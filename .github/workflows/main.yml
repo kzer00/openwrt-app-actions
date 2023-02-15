@@ -227,7 +227,7 @@ jobs:
         with:
           repo_token: ${{ secrets.GH_TOKEN }}
           file_glob: false
-          file: ${{ env.SDK_NAME }}/bin/packages/${{ env.SDK_ARCH }}/*
+          file: ${{ env.SDK_NAME }}/bin/packages/${{ env.SDK_ARCH }}
           asset_name: ${{ github.event.repository.name }}-${{ github.sha }}
           tag: release-${{ env.DATE }}
           overwrite: true
