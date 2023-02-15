@@ -71,7 +71,8 @@ jobs:
           sudo -E apt-get -qq clean
           sudo timedatectl set-timezone "$TZ"
           # curl -fsSL https://raw.githubusercontent.com/P3TERX/dotfiles/master/.bashrc >> ~/.bashrc
-
+          echo "DATE=$(date +%Y%m%d)" >> $GITHUB_ENV
+          echo "DATETIME=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
       - name: Download SDK
         run: wget ${SDK_URL}${SDK_NAME}.tar.xz
 
@@ -211,19 +212,23 @@ jobs:
         if: failure() && steps.download.outputs.status == 'success'
         run: tail -n 200 /tmp/openwrt-sdk-build.log && false
 
-      - name: PreUpload - Clean
-        id: preupload
-        if: steps.precompile.outputs.status == 'success' || steps.compile.outputs.status == 'success'
-        run: |
-          cd ${SDK_NAME}/bin/packages/${SDK_ARCH}
-          rm -rf base luci
-
-      - name: Upload bin directory
-        uses: actions/upload-artifact@main
+      - name: Upload Firmware to Artifacts
+        uses: actions/upload-artifact@v2
         if: steps.precompile.outputs.status == 'success' || steps.compile.outputs.status == 'success'
         with:
           name: ${{ env.SDK_ARCH }}
           path: ${{ env.SDK_NAME }}/bin/packages/${{ env.SDK_ARCH }}
+
+      - name: Upload Firmware to Release
+       # if: github.event.inputs.release == 'true'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          file_glob: true
+          file: ${{ env.SDK_NAME }}/bin/packages/${{ env.SDK_ARCH }}/*
+          asset_name: ${{ github.event.repository.name }}-${{ github.sha }}
+          tag: release-${{ env.DATE}}
+          overwrite: true
 
       - name: PreCache - Clean
         run: |
