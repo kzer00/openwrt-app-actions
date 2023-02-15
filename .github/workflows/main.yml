@@ -213,18 +213,20 @@ jobs:
         run: tail -n 200 /tmp/openwrt-sdk-build.log && false
 
       - name: Upload Firmware to Artifacts
+      - id: artifacts
         uses: actions/upload-artifact@v2
         if: steps.precompile.outputs.status == 'success' || steps.compile.outputs.status == 'success'
         with:
           name: ${{ env.SDK_ARCH }}
           path: ${{ env.SDK_NAME }}/bin/packages/${{ env.SDK_ARCH }}
-
+           echo "status=success" >> $GITHUB_OUTPUT
+ 
       - name: Upload Firmware to Release
-       # if: github.event.inputs.release == 'true'
+        if: steps.artifacts.outputs.status == 'success'
         uses: svenstaro/upload-release-action@v2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          file_glob: true
+ 
           file: ${{ env.SDK_NAME }}/bin/packages/${{ env.SDK_ARCH }}/*
           asset_name: ${{ github.event.repository.name }}-${{ github.sha }}
           tag: release-${{ env.DATE }}
